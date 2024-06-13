@@ -13,14 +13,14 @@ jobs:
       with:
         ref: 803020f3b9a7c105eabbdc93f941ad27c64b3293
 
-    - name: Set up JDK 17 for project
+    - name: Set up JDK 21 for project
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
         cache: maven
 
-    - name: Build project with JDK 17 
+    - name: Build project with JDK 21
       run: mvn clean install -DskipTests
 
     - name: Set up JDK 11 for JPF
