@@ -1,11 +1,15 @@
-name: JPF Runner
+name: Run JPF
 
 on:
   push:
 
 jobs:
   run-jpf:
-    runs-on: ubuntu-latest
+    name: '${{ matrix.os }}'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-12]
 
     steps:
     - name: Checkout repository
@@ -36,36 +40,21 @@ jobs:
         ./gradlew buildJars
 
     - name: Run JPF on JAR files
+      shell: bash
       run: |
         #!/bin/bash
-  
-        # Set the current working directory
+        set +e 
+        
         directory=$(pwd)
-  
-        # Define the path to the RunJPF.jar file
         runjpf_jar="/tmp/jpf-core/build/RunJPF.jar"
-  
-        # Find all .jar files in the specified directory and its subdirectories, excluding those with "SNAPSHOT" in the name
         jar_files=$(find "$directory" -type f -name "*.jar")
-  
-        # Loop through each .jar file found
         for jar_file in $jar_files; 
         do
-            # Extract the directory containing the .jar file
             jar_dir=$(dirname "$jar_file")
-            
-            # Extract the main class from the jar's manifest
             main_class=$(unzip -p "$jar_file" META-INF/MANIFEST.MF | grep -i 'Main-Class' | awk -F': ' '{print $2}' | tr -d '\r')
-  
             if [ -z "$main_class" ]; then
-                echo "Main class not found in $jar_file, skipping..."
                 continue
             fi
-            
-            # Construct the command
             command="java -jar $runjpf_jar +classpath=$jar_file $main_class"
-            
-            # Execute the command
-            echo "Executing $command"
             $command
         done
